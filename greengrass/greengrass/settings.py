@@ -25,7 +25,7 @@ SECRET_KEY = '*+p!b3ci=3!#v(@6e^4+wfw)f1dic9&f17m7kfn%ngavr6n&un'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['greengrass.eba-wfwgrppp.eu-central-1.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['greengrass.eba-wfwgrppp.eu-central-1.elasticbeanstalk.com', '127.0.0.1']
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'greengrass',
+    'mainpage',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = 'greengrass.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join((BASE_DIR), 'templates/')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,3 +133,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
+
