@@ -2,6 +2,7 @@
 passwords.txt
 static/
 .idea/
+greengrass/greengrass/.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -107,7 +108,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+greengrass/greengrass/.env
 .venv
 env/
 venv/
