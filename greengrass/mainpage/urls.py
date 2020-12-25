@@ -25,4 +25,10 @@ urlpatterns = [
         template_name='password_reset_complete.html'
         ),
         name='password_reset_complete'),
+    path('auto_on/', views.auto_on, name='auto_on'),
+    path('auto_off/', views.auto_off, name='auto_off'),
+    path('set_target_humidity/', views.set_target_humidity, name='set_target_humidity'),
+    path('irrigation_on/', views.irrigation_on, name='irrigation_on'),
+    path('irrigation_off/', views.irrigation_off, name='irrigation_off'),
+    path('about/', views.about, name='about'),
 ]

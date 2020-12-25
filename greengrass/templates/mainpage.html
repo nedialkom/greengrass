@@ -1,41 +1,296 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block custom_css %}
+<link href="{% static 'css/bootstrap-toggle.min.css' %}" rel="stylesheet">
+<style>
+  .toggle.ios, .toggle-on.ios, .toggle-off.ios { border-radius: 20px; }
+  .toggle.ios .toggle-handle { border-radius: 20px; }
+</style>
+{% endblock custom_css %}
+<script src="{% static 'js/bootstrap-toggle.min.js' %}"></script>
+<script src="{% static 'js/toggle.js' %}"></script>
+{% block custom_js %}
+
+{% endblock custom_js %}
 
 {% block content %}
 <!-- Background image -->
-<div
-    class="p-5 text-center bg-image"
-    style="
-      background-image: url({% static 'img/GreenGrass_850x240.jpg'%});
-      height: 150px;
-    "
->
-    <div class="mask" style="background-color: rgba(0, 0, 0, 0)">
-      <div class="d-flex justify-content-center align-items-center h-50">
-        <div class="text-white">
-          <h1 class="mb-3">Pi4 Sensor status</h1>
+<div class="container-fluid">
+    <div class="container-fluid">
+        <div
+            class="p-5 text-center bg-image"
+            style="
+              background-image: url({% static 'img/GreenGrass_850x240.jpg'%});
+              height: 150px;
+            "
+        >
+            <div class="mask" style="background-color: rgba(0, 0, 0, 0)">
+              <div class="d-flex justify-content-center align-items-center h-50">
+                <div class="text-white">
+                  <h1 class="mb-3">Pi4 Sensor status</h1>
+                </div>
+              </div>
+            </div>
         </div>
-      </div>
     </div>
 </div>
 <!-- Background image -->
-
-<img src="data:image/png;base64,{{ data }}"
-       alt="some text to display to your users when the image does not show correctly"
-       width=500 height=auto />
-<div class="container-fluid navbar">Mode:</div>
-<style>
-        .toggle.android { border-radius: 0px;}
-        .toggle.android .toggle-handle { border-radius: 0px; }
-</style>
 <div class="container-fluid">
-  <input type="checkbox"
-           checked
-           data-toggle="toggle"
-           data-style="android"
-           data-on="Auto"
-           data-off="Manual"
-           data-onstyle="success"
-           data-offstyle="danger">
+    <div class="row">
+        <div class="col">
+            <img src="data:image/png;base64,{{ data }}"
+                   alt="some text to display to your users when the image does not show correctly"
+                   width=500 height=auto />
+        </div>
+
+        {% if user.is_authenticated %}
+
+        <div class="col container-fluid">
+          <div class="row">
+            <h2> <br>
+             Mode:
+                {% if state.mode == 'auto' %}
+                    <input type="checkbox"
+                           checked
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="Auto"
+                           data-off="Manual"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="toggle-mode">
+                {% elif state.mode == 'manual' %}
+                    <input type="checkbox"
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="Auto"
+                           data-off="Manual"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="toggle-mode">
+                {% endif %}
+                <script>
+                  $(function() {
+                    $('#toggle-mode').change(function() {
+                      if (document.getElementById('toggle-mode').checked) {
+                            // Auto On
+                            document.getElementById('irrigation').disabled = true;
+                            console.log('switch off irrigation dongle');
+                      } else {
+                            // Manual
+                            document.getElementById('irrigation').disabled = false;
+                            console.log('switch on irrigation dongle');
+                      }
+
+                      function getCookie(name) {
+                        let cookieValue = null;
+                        if (document.cookie && document.cookie !== '') {
+                            const cookies = document.cookie.split(';');
+                            for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i].trim();
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                      };
+                      const csrftoken = getCookie('csrftoken');
+
+                      if ($(this).prop('checked')) {
+                          const request = new Request(
+                            "{% url 'auto_on' %}",
+                            {headers: {'X-CSRFToken': csrftoken}}
+                          );
+                          fetch(request, {
+                                method: 'POST'
+                          }).then(function(response) {
+                                console.log('switching to auto');
+                          });
+                       } else {
+                          const request = new Request(
+                            "{% url 'auto_off' %}",
+                            {headers: {'X-CSRFToken': csrftoken}}
+                          );
+                          fetch(request, {
+                                method: 'POST'
+                          }).then(function(response) {
+                                console.log('switching to manual');
+                          });
+                       }
+                    })
+                  })
+                </script>
+            </h2>
+          </div>
+          <div class="row col-9">
+              <h5>Current humidity: <b>{{ state.current_moisture }}</b></h5>
+          </div>
+          <div class="row col-9">
+              <h6> Target humidity: </h6>
+              <div class="input-group input-group-sm">
+                    <input class="form-control"
+                                 type="number"
+                                 value="{{ state.target_moisture }}"
+                                 id="target_humidity"
+                                 name="target_humidity"
+                                 min="0"
+                                 max="1000"
+                                 step="10">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary"
+                                    type="submit"
+                                    onclick="setHumidity()">Set</button>
+                    </div>
+              </div>
+          </div>
+          <script>
+            function setHumidity() {
+               function getCookie(name) {
+                 let cookieValue = null;
+                 if (document.cookie && document.cookie !== '') {
+                     const cookies = document.cookie.split(';');
+                     for (let i = 0; i < cookies.length; i++) {
+                         const cookie = cookies[i].trim();
+                             if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                     }
+                }
+                return cookieValue;
+               };
+               const csrftoken = getCookie('csrftoken');
+               const target_humidity = parseInt(document.getElementById('target_humidity').value);
+               const body = {"target": target_humidity};
+               console.log(body);
+               const request = new Request(
+                  "{% url 'set_target_humidity' %}",
+                  {headers: {'X-CSRFToken': csrftoken}}
+                  );
+               fetch(request, {
+                  method: 'POST',
+                  body: JSON.stringify(body)
+               }).then(function(response) {
+                  console.log('setting target humidity')
+               });
+            }
+        </script>
+        <div class="row">
+            <h2>Irrigation:
+                {% if state.relay_current_state == 'on' %}
+                    {% if state.mode == 'auto' %}
+                    <! in auto disable manual irrigation switch -->
+                    <input type="checkbox"
+                           checked
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="On"
+                           data-off="Off"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="irrigation"
+                           onclick="setOff()"
+                           onload="myScript()"
+                           disabled>
+                    {% else %}
+                           <input type="checkbox"
+                           checked
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="On"
+                           data-off="Off"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="irrigation"
+                           onclick="setOff()"
+                           onload="myScript()">
+                    {% endif %}
+                {% elif state.mode == 'manual' %}
+                    {% if state.mode == 'auto' %}
+                    <input type="checkbox"
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="On"
+                           data-off="Off"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="irrigation"
+                           onclick="setOn()"
+                           onload="myScript()"
+                           disabled>
+                    {% else %}
+                           <input type="checkbox"
+                           data-toggle="toggle"
+                           class="row"
+                           data-on="On"
+                           data-off="Off"
+                           data-style="ios"
+                           data-onstyle="success"
+                           data-offstyle="danger"
+                           id="irrigation"
+                           onclick="setOn()"
+                           onload="myScript()">
+                    {% endif %}
+                {% endif %}
+            </h2>
+            <script>
+                $(function() {
+                    $('#irrigation').change(function() {
+                        function getCookie(name) {
+                           let cookieValue = null;
+                           if (document.cookie && document.cookie !== '') {
+                                const cookies = document.cookie.split(';');
+                                for (let i = 0; i < cookies.length; i++) {
+                                     const cookie = cookies[i].trim();
+                                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                          break;
+                                     }
+                                }
+                           }
+                           return cookieValue;
+                        };
+                        const csrftoken = getCookie('csrftoken');
+
+                        if ($(this).prop('checked')) {
+                            const request = new Request(
+                                "{% url 'irrigation_on' %}",
+                                {headers: {'X-CSRFToken': csrftoken}}
+                            );
+                            fetch(request, {
+                                  method: 'POST'
+                            }).then(function(response) {
+                                  console.log('switching irrigation on');
+                            });
+                            console.log('on');
+                        } else {
+                            const request = new Request(
+                                "{% url 'irrigation_off' %}",
+                                {headers: {'X-CSRFToken': csrftoken}}
+                            );
+                            fetch(request, {
+                                  method: 'POST'
+                            }).then(function(response) {
+                                  console.log('switching irrigation off');
+                            });
+                            console.log('off')
+                        }
+                    })
+                })
+            </script>
+        </div>
+    </div>
 </div>
+{% endif %}
+    </div>
+</div>
+
 {% endblock %}
