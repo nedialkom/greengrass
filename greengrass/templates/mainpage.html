@@ -38,9 +38,64 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col">
+              <br>
+              <h6> Show last days: </h6>
+              <form method="POST" id="form">
+                  {% csrf_token %}
+              <div class="input-group input-group-sm">
+                    <input class="form-control"
+                                 type="number"
+                                 value="{{ state.past_days }}"
+                                 id="past_days"
+                                 name="past_days"
+                                 min="1"
+                                 max="365"
+                                 step="1"
+                                 size="4">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary"
+                                    type="submit"
+                                    onclick="setPastDays()">Set</button>
+                    </div>
+              </div>
+                      <script>
+                        function setPastDays() {
+                           function getCookie(name) {
+                             let cookieValue = null;
+                             if (document.cookie && document.cookie !== '') {
+                                 const cookies = document.cookie.split(';');
+                                 for (let i = 0; i < cookies.length; i++) {
+                                     const cookie = cookies[i].trim();
+                                         if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                             break;
+                                         }
+                                 }
+                            }
+                            return cookieValue;
+                           };
+                           const csrftoken = getCookie('csrftoken');
+                           const past_days = parseInt(document.getElementById('past_days').value);
+                           const body = {"past_days": past_days};
+                           console.log(body);
+                           const request = new Request(
+                              "{% url 'past_days_view' %}",
+                              {headers: {'X-CSRFToken': csrftoken}}
+                              );
+                           fetch(request, {
+                              method: 'POST',
+                              body: JSON.stringify(body)
+                           }).then(function(response) {
+                              console.log('setting new past days to be displayed in chart')
+                           });
+                           $('#form').submit()
+                        }
+                      </script>
+              </form>
             <img src="data:image/png;base64,{{ data }}"
                    alt="some text to display to your users when the image does not show correctly"
                    width=500 height=auto />
+
         </div>
 
         {% if user.is_authenticated %}
@@ -212,7 +267,7 @@
                            onclick="setOff()"
                            onload="myScript()">
                     {% endif %}
-                {% elif state.mode == 'manual' %}
+                {% elif state.relay_current_state == 'off' %}
                     {% if state.mode == 'auto' %}
                     <input type="checkbox"
                            data-toggle="toggle"
@@ -290,7 +345,5 @@
     </div>
 </div>
 {% endif %}
-    </div>
 </div>
-
 {% endblock %}

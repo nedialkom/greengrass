@@ -31,4 +31,5 @@ urlpatterns = [
     path('irrigation_on/', views.irrigation_on, name='irrigation_on'),
     path('irrigation_off/', views.irrigation_off, name='irrigation_off'),
     path('about/', views.about, name='about'),
+    path('past_days_view/', views.past_days_view, name='past_days_view'),
 ]

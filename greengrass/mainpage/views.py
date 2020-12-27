@@ -1,4 +1,5 @@
 from django.shortcuts import render, HttpResponseRedirect, redirect, reverse
+from django.http import HttpResponse
 import requests
 import pandas as pd
 import matplotlib
@@ -75,7 +76,8 @@ def auto_on(request):
         url = 'https://3ovzkc5b71.execute-api.eu-central-1.amazonaws.com/production/mode'
         body = {'mode': 'auto'}
         response = requests.post(url, json=body)
-    return redirect('/')
+    #return redirect('/')
+    return HttpResponse("Ok")
 
 
 def auto_off(request):
@@ -83,7 +85,7 @@ def auto_off(request):
         url = 'https://3ovzkc5b71.execute-api.eu-central-1.amazonaws.com/production/mode'
         body = {'mode': 'manual'}
         response = requests.post(url, json=body)
-    return redirect('/')
+    return HttpResponse("Ok")
 
 
 def set_target_humidity(request):
@@ -92,7 +94,7 @@ def set_target_humidity(request):
         body = request.body.decode('utf-8')
         body = json.loads(body)
         response = requests.post(url, json=body)
-    return redirect('/')
+    return HttpResponse("Ok")
 
 
 def irrigation_on(request):
@@ -100,7 +102,7 @@ def irrigation_on(request):
         url = 'https://3ovzkc5b71.execute-api.eu-central-1.amazonaws.com/production/relay'
         body = {'relay': 'on'}
         response = requests.post(url, json=body)
-    return redirect('/')
+    return HttpResponse("Ok")
 
 
 def irrigation_off(request):
@@ -108,7 +110,18 @@ def irrigation_off(request):
         url = 'https://3ovzkc5b71.execute-api.eu-central-1.amazonaws.com/production/relay'
         body = {'relay': 'off'}
         response = requests.post(url, json=body)
-    return redirect('/')
+    return HttpResponse("Ok")
+
+
+def past_days_view(request):
+    global past_days
+    if request.method == 'POST':
+        body = request.body.decode('utf-8')
+        body = json.loads(body)
+        past_days = int(body['past_days'])
+        if past_days <= 0:
+            past_days = 1
+    return HttpResponse("Ok")
 
 
 def about(request):
